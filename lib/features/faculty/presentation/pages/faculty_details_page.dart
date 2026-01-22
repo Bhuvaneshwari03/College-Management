@@ -259,6 +259,39 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                   },
                                   textCapitalization: TextCapitalization.words,
                                 ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading
+                                        ? null
+                                        : _submitDetails,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepPurple,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Add',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -291,22 +324,6 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isLoading ? null : _submitDetails,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.deepPurple,
-        label: _isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Text(
-                'Settled',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-        icon: _isLoading ? null : const Icon(Icons.check_circle_outline),
       ),
     );
   }
