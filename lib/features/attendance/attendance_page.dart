@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:college_management/features/attendance/add_student_page.dart';
 import 'package:college_management/features/attendance/attendance_model.dart';
 import 'package:college_management/features/attendance/attendance_service.dart';
 import 'package:college_management/features/attendance/mark_attendance_page.dart';
@@ -25,7 +24,7 @@ class AttendancePage extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'No students found.\nUse the + button to add one.',
+                'No students found.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
@@ -72,16 +71,6 @@ class AttendancePage extends StatelessWidget {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddStudentPage()),
-          );
-        },
-        label: const Text('Add Student'),
-        icon: const Icon(Icons.add),
       ),
     );
   }

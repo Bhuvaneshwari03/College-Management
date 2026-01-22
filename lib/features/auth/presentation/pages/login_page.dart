@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:college_management/features/dashboard/faculty_dashboard.dart';
+import 'package:college_management/features/auth/presentation/pages/faculty_registration_page.dart';
 
-class FacultyRegistrationPage extends StatefulWidget {
-  const FacultyRegistrationPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<FacultyRegistrationPage> createState() =>
-      _FacultyRegistrationPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -20,51 +19,39 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _register() async {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
 
-        // Update display name
-        await FirebaseAuth.instance.currentUser?.updateDisplayName(
-          _nameController.text.trim(),
-        );
-
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registration Successful! Welcome Aboard.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Navigate to Faculty Dashboard
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const FacultyDashboard()),
           );
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
-          String message = 'Registration Failed';
-          if (e.code == 'weak-password') {
-            message = 'The password provided is too weak.';
-          } else if (e.code == 'email-already-in-use') {
-            message = 'The account already exists for that email.';
-          } else {
-            message = 'Error: ${e.message}';
+          String message = 'Login Failed';
+          if (e.code == 'user-not-found') {
+            message = 'No user found for that email.';
+          } else if (e.code == 'wrong-password') {
+            message = 'Wrong password provided.';
+          } else if (e.code == 'invalid-credential') {
+            message = 'Invalid email or password.';
           }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
           );
@@ -105,10 +92,8 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo or Icon could go here
                 const Icon(Icons.school_rounded, size: 80, color: Colors.white),
                 const SizedBox(height: 24),
-
                 Card(
                   elevation: 12,
                   shape: RoundedRectangleBorder(
@@ -126,7 +111,7 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            'Faculty Registration',
+                            'Welcome Back',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -136,84 +121,25 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Join the academic community',
+                            'Sign in to continue',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
                             ),
                           ),
                           const SizedBox(height: 32),
-
-                          // Name Field
-                          TextFormField(
-                            controller: _nameController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: InputDecoration(
-                              labelText: 'Full Name',
-                              prefixIcon: const Icon(
-                                Icons.person_outline,
-                                color: Colors.deepPurple,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your name';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Email Field
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              labelText: 'Official Email ID',
-                              hintText: 'example@msuniv.ac.in',
-                              helperText: 'Must be an @msuniv.ac.in address',
+                              labelText: 'Email',
                               prefixIcon: const Icon(
-                                Icons.alternate_email,
+                                Icons.email_outlined,
                                 color: Colors.deepPurple,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
-                                  width: 2,
-                                ),
                               ),
                               filled: true,
                               fillColor: Colors.grey.shade50,
@@ -225,17 +151,10 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
                               }
-                              if (!value.toString().trim().endsWith(
-                                '@msuniv.ac.in',
-                              )) {
-                                return 'Please enter college email';
-                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
-
-                          // Password Field
                           TextFormField(
                             controller: _passwordController,
                             obscureText: !_isPasswordVisible,
@@ -262,19 +181,6 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
-                                  width: 2,
-                                ),
-                              ),
                               filled: true,
                               fillColor: Colors.grey.shade50,
                               contentPadding: const EdgeInsets.symmetric(
@@ -282,29 +188,37 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.length < 6) {
-                                return 'Password must be at least 6 characters';
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
                               }
                               return null;
                             },
                           ),
-                          const SizedBox(height: 32),
-
-                          // Register Button
+                          const SizedBox(height: 24),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                // TODO: Implement Forgot Password
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.deepPurple,
+                              ),
+                              child: const Text('Forgot Password?'),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _register,
+                              onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.deepPurple,
                                 foregroundColor: Colors.white,
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
                                 ),
                               ),
                               child: _isLoading
@@ -317,7 +231,7 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                                       ),
                                     )
                                   : const Text(
-                                      'REGISTER',
+                                      'LOGIN',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -331,12 +245,18 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Already have an account? ",
+                                "Don't have an account? ",
                                 style: TextStyle(color: Colors.grey[600]),
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context); // Go back to Login
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const FacultyRegistrationPage(),
+                                    ),
+                                  );
                                 },
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.deepPurple,
@@ -344,7 +264,7 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                child: const Text('Login'),
+                                child: const Text('Register'),
                               ),
                             ],
                           ),

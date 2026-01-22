@@ -1,7 +1,5 @@
-import 'package:college_management/features/auth/presentation/pages/faculty_registration_page.dart';
+import 'package:college_management/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:college_management/features/dashboard/dashboard_page.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:college_management/firebase_options.dart';
 
@@ -31,7 +29,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const FacultyRegistrationPage(),
+      home: const LoginPage(),
     );
   }
 }
