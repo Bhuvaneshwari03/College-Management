@@ -17,4 +17,49 @@ class AttendanceService {
   }
 
   // Future methods for attendance marking will go here
+
+  Stream<List<StudentModel>> getStudents() {
+    return _studentsCollection.orderBy('name').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return StudentModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+    });
+  }
+
+  Future<void> markAttendance(
+    String studentId,
+    DateTime date,
+    bool present,
+  ) async {
+    try {
+      final docId = date.toIso8601String().split(
+        'T',
+      )[0]; // Use YYYY-MM-DD as ID
+      await _studentsCollection
+          .doc(studentId)
+          .collection('attendance')
+          .doc(docId)
+          .set({'date': date.toIso8601String(), 'present': present});
+    } catch (e) {
+      throw Exception('Failed to mark attendance: $e');
+    }
+  }
+
+  Future<bool> getAttendanceStatus(String studentId, DateTime date) async {
+    try {
+      final docId = date.toIso8601String().split('T')[0];
+      final doc = await _studentsCollection
+          .doc(studentId)
+          .collection('attendance')
+          .doc(docId)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        return doc.data()!['present'] as bool;
+      }
+      return true; // Default to present as per requirement
+    } catch (e) {
+      return true; // Default error state
+    }
+  }
 }
