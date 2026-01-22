@@ -1,9 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class StudentModel {
   final String id;
   final String name;
   final String department;
   final String studentClass;
   final String batch;
+  final DateTime? createdAt;
 
   StudentModel({
     required this.id,
@@ -11,15 +14,16 @@ class StudentModel {
     required this.department,
     required this.studentClass,
     required this.batch,
+    this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'department': department,
       'class': studentClass,
       'batch': batch,
+      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
 
@@ -30,6 +34,9 @@ class StudentModel {
       department: map['department'] ?? '',
       studentClass: map['class'] ?? '',
       batch: map['batch'] ?? '',
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] as Timestamp).toDate()
+          : null,
     );
   }
 }
