@@ -37,6 +37,9 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
   Future<void> _addStudent() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
+      // Close dialog first if open, or handle loading state inside dialog
+      // For this implementation, we'll keep the dialog open but show loading
+      // Actually, better UX is to close dialog on success
 
       try {
         await FirebaseFirestore.instance
@@ -58,6 +61,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           );
           _nameController.clear();
           _rollNumberController.clear();
+          Navigator.pop(context); // Close the dialog
         }
       } catch (e) {
         if (mounted) {
@@ -71,6 +75,75 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
         }
       }
     }
+  }
+
+  void _showAddStudentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Student'),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Full Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Required' : null,
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _rollNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Roll No',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Required' : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          StatefulBuilder(
+            builder: (context, setState) {
+              return ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        setState(() => _isLoading = true);
+                        await _addStudent();
+                        if (mounted) {
+                          setState(() => _isLoading = false);
+                        }
+                      },
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Add'),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -104,6 +177,15 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddStudentDialog,
+        backgroundColor: Colors.deepPurple,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add Student',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -115,119 +197,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
         child: SafeArea(
           child: Column(
             children: [
-              // Add Student Form
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  color: Colors.white.withOpacity(0.95),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Add Student',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: TextFormField(
-                                  controller: _nameController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Full Name',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  validator: (value) =>
-                                      value == null || value.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                  textCapitalization: TextCapitalization.words,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 1,
-                                child: TextFormField(
-                                  controller: _rollNumberController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Roll No',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  validator: (value) =>
-                                      value == null || value.isEmpty
-                                      ? 'Required'
-                                      : null,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 45,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _addStudent,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Add Student',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
+              const SizedBox(height: 16),
               // Student List Header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
