@@ -23,6 +23,10 @@ class _TimetablePageState extends State<TimetablePage> {
 
   final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
+  bool _isEditing = false;
+  Map<String, dynamic> _localTimetable = {};
+  Map<String, dynamic> _dbData = {};
+
   Future<void> _showSessionDialog(
     BuildContext context,
     String day,
@@ -57,18 +61,6 @@ class _TimetablePageState extends State<TimetablePage> {
                 return ListView(
                   shrinkWrap: true,
                   children: [
-                    ListTile(
-                      title: const Text(
-                        'Free Period',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      onTap: () =>
-                          _updateTimetable(day, periodIndex, 'Free Period'),
-                    ),
-                    const Divider(),
                     if (docs.isEmpty)
                       const Padding(
                         padding: EdgeInsets.all(8.0),
@@ -89,10 +81,24 @@ class _TimetablePageState extends State<TimetablePage> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text('$branch • $year'),
-                        onTap: () =>
-                            _updateTimetable(day, periodIndex, displayString),
+                        onTap: () => _updateLocalTimetable(
+                          day,
+                          periodIndex,
+                          displayString,
+                        ),
                       );
                     }),
+                    ListTile(
+                      title: const Text(
+                        'Free Period',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      onTap: () => _updateLocalTimetable(
+                        day,
+                        periodIndex,
+                        'Free Period',
+                      ),
+                    ),
                   ],
                 );
               },
@@ -109,36 +115,85 @@ class _TimetablePageState extends State<TimetablePage> {
     );
   }
 
-  Future<void> _updateTimetable(
-    String day,
-    int periodIndex,
-    String value,
-  ) async {
+  void _updateLocalTimetable(String day, int periodIndex, String value) {
+    Navigator.pop(context); // Close dialog
+    setState(() {
+      if (!_localTimetable.containsKey(day)) {
+        _localTimetable[day] = <String, dynamic>{};
+      } else if (_localTimetable[day] is! Map<String, dynamic>) {
+        // Ensure it's the correct type if it exists but is generic
+        _localTimetable[day] = Map<String, dynamic>.from(
+          _localTimetable[day] as Map,
+        );
+      }
+      _localTimetable[day][periodIndex.toString()] = value;
+    });
+  }
+
+  Future<void> _saveTimetable() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    Navigator.pop(context); // Close dialog
 
     try {
       await FirebaseFirestore.instance
           .collection('faculty_timetables')
           .doc(user.uid)
-          .set({
-            day: {periodIndex.toString(): value},
-          }, SetOptions(merge: true));
+          .set(_localTimetable); // Overwrite with local state
+
+      setState(() {
+        _isEditing = false;
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Updated $day Period ${periodIndex + 1}')),
+          const SnackBar(content: Text('Timetable saved successfully')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error updating timetable: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error saving timetable: $e')));
       }
     }
+  }
+
+  void _toggleEdit() {
+    setState(() {
+      if (_isEditing) {
+        // Cancel editing
+        _isEditing = false;
+      } else {
+        // Start editing, create deep copy of dbData
+        _localTimetable = {};
+        _dbData.forEach((key, value) {
+          if (value is Map) {
+            _localTimetable[key] = Map<String, dynamic>.from(value);
+          }
+        });
+        _isEditing = true;
+      }
+    });
+  }
+
+  Color _getSubjectColor(String subject) {
+    if (subject == '-' || subject.isEmpty) return Colors.transparent;
+
+    // Custom premium mild colors
+    final List<Color> colors = [
+      const Color(0xFFE3F2FD), // Mild Blue
+      const Color(0xFFF3E5F5), // Mild Purple
+      const Color(0xFFE8F5E9), // Mild Green
+      const Color(0xFFFFF3E0), // Mild Orange
+      const Color(0xFFFCE4EC), // Mild Pink
+      const Color(0xFFE0F7FA), // Mild Cyan
+    ];
+
+    if (subject == 'Free Period') {
+      return const Color(0xFFFFF9C4); // Mild Yellow for Free Period
+    }
+
+    return colors[subject.hashCode.abs() % colors.length];
   }
 
   @override
@@ -160,8 +215,22 @@ class _TimetablePageState extends State<TimetablePage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (_isEditing) {
+              // Prompt to discard changes? For now just pop
+            }
+            Navigator.pop(context);
+          },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isEditing ? Icons.save : Icons.edit,
+              color: Colors.white,
+            ),
+            onPressed: _isEditing ? _saveTimetable : _toggleEdit,
+          ),
+        ],
       ),
       body: Container(
         width: double.infinity,
@@ -182,10 +251,19 @@ class _TimetablePageState extends State<TimetablePage> {
                       .snapshots()
                 : null,
             builder: (context, snapshot) {
-              Map<String, dynamic> timetableData = {};
               if (snapshot.hasData && snapshot.data!.exists) {
-                timetableData = snapshot.data!.data() as Map<String, dynamic>;
+                final data = snapshot.data!.data();
+                if (data is Map) {
+                  _dbData = Map<String, dynamic>.from(data);
+                } else {
+                  _dbData = {};
+                }
+              } else {
+                _dbData = {};
               }
+
+              // Use local data if editing, otherwise live DB data
+              final displayData = _isEditing ? _localTimetable : _dbData;
 
               return Column(
                 children: [
@@ -215,7 +293,7 @@ class _TimetablePageState extends State<TimetablePage> {
                             // Clip is needed to ensure children respect the rounded corners
                             clipBehavior: Clip.antiAlias,
                             child: Table(
-                              defaultColumnWidth: const FixedColumnWidth(100.0),
+                              defaultColumnWidth: const FixedColumnWidth(150.0),
                               // No global table border logic; we handle it manually per cell
                               border: null,
                               children: [
@@ -284,7 +362,7 @@ class _TimetablePageState extends State<TimetablePage> {
                                 ..._days.map((day) {
                                   final isLastRow = day == _days.last;
                                   final dayData =
-                                      timetableData[day]
+                                      displayData[day]
                                           as Map<String, dynamic>? ??
                                       {};
 
@@ -376,21 +454,26 @@ class _TimetablePageState extends State<TimetablePage> {
 
                                         final uniqueSubject =
                                             dayData[index.toString()] ?? '-';
+                                        final cellColor = _getSubjectColor(
+                                          uniqueSubject,
+                                        );
 
                                         return TableCell(
                                           verticalAlignment:
                                               TableCellVerticalAlignment.middle,
                                           child: InkWell(
-                                            onTap: () => _showSessionDialog(
-                                              context,
-                                              day,
-                                              index,
-                                            ),
+                                            onTap: _isEditing
+                                                ? () => _showSessionDialog(
+                                                    context,
+                                                    day,
+                                                    index,
+                                                  )
+                                                : null,
                                             child: Container(
                                               height:
-                                                  60, // Fixed height for cells
+                                                  100, // Fixed height for cells
                                               alignment: Alignment.center,
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 border: Border(
                                                   right: borderSide,
@@ -398,13 +481,28 @@ class _TimetablePageState extends State<TimetablePage> {
                                                       ? BorderSide.none
                                                       : borderSide,
                                                 ),
+                                                // If subject exists, use its color.
+                                                // If subject is '-', use white if editing (to encourage click), else transparent.
+                                                color: uniqueSubject != '-'
+                                                    ? cellColor
+                                                    : (_isEditing
+                                                          ? Colors.white
+                                                          : Colors.transparent),
                                               ),
                                               child: Text(
                                                 uniqueSubject,
                                                 textAlign: TextAlign.center,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
+                                                  fontWeight:
+                                                      uniqueSubject != '-'
+                                                      ? FontWeight.bold
+                                                      : FontWeight.w500,
+                                                  color:
+                                                      _isEditing &&
+                                                          uniqueSubject == '-'
+                                                      ? Colors.grey.shade400
+                                                      : Colors.black,
                                                 ),
                                                 maxLines: 3,
                                                 overflow: TextOverflow.ellipsis,
@@ -424,23 +522,42 @@ class _TimetablePageState extends State<TimetablePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 24.0,
-                      top: 8.0,
-                      left: 16.0,
-                      right: 16.0,
-                    ),
-                    child: Text(
-                      'Click on the session to add session details',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
+                  if (_isEditing)
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 24.0,
+                        top: 8.0,
+                        left: 16.0,
+                        right: 16.0,
                       ),
-                      textAlign: TextAlign.center,
+                      child: Text(
+                        'Editing Mode: Click on a session to change it. Don\'t forget to Save.',
+                        style: TextStyle(
+                          color: Colors.yellow,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 24.0,
+                        top: 8.0,
+                        left: 16.0,
+                        right: 16.0,
+                      ),
+                      child: Text(
+                        'Click Edit button to modify timetable.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
                 ],
               );
             },

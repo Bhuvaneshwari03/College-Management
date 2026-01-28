@@ -90,6 +90,14 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
   }
 
   void _showAddClassDialog() {
+    // Reset form for new entry
+    _subjectController.clear();
+    setState(() {
+      _selectedBranch = null;
+      _selectedYear = null;
+      _selectedSemester = null;
+    });
+
     showDialog(
       context: context,
       builder: (context) {
@@ -252,6 +260,218 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
     );
   }
 
+  Future<void> _updateClassDetails(String docId) async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('faculty_subjects')
+            .doc(docId)
+            .update({
+              'branch': _selectedBranch,
+              'year': _selectedYear,
+              'semester': _selectedSemester,
+              'subjectName': _subjectController.text.trim(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Subject Updated Successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
+  void _showEditClassDialog(String docId, Map<String, dynamic> data) {
+    // Pre-fill form
+    _subjectController.text = data['subjectName'] ?? '';
+    setState(() {
+      _selectedBranch = data['branch'];
+      _selectedYear = data['year'];
+      _selectedSemester = data['semester'];
+    });
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Class & Subject'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Branch Dropdown
+                      DropdownButtonFormField<String>(
+                        value: _selectedBranch,
+                        decoration: InputDecoration(
+                          labelText: 'Branch Name',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        items: _branches
+                            .map(
+                              (branch) => DropdownMenuItem(
+                                value: branch,
+                                child: Text(branch),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedBranch = value;
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? 'Please select a branch' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Year Dropdown
+                      DropdownButtonFormField<String>(
+                        value: _selectedYear,
+                        decoration: InputDecoration(
+                          labelText: 'Year',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        items: _years
+                            .map(
+                              (year) => DropdownMenuItem(
+                                value: year,
+                                child: Text(year),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedYear = value;
+                            _selectedSemester = null; // Reset semester
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? 'Please select year' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Semester Dropdown
+                      DropdownButtonFormField<String>(
+                        value: _selectedSemester,
+                        decoration: InputDecoration(
+                          labelText: 'Semester',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        // Disable if year is not selected
+                        items: _selectedYear == null
+                            ? []
+                            : _semesters
+                                  .map(
+                                    (sem) => DropdownMenuItem(
+                                      value: sem,
+                                      child: Text(sem),
+                                    ),
+                                  )
+                                  .toList(),
+                        onChanged: _selectedYear == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedSemester = value;
+                                });
+                              },
+                        validator: (value) =>
+                            value == null ? 'Please select semester' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Subject Name Input
+                      TextFormField(
+                        controller: _subjectController,
+                        decoration: InputDecoration(
+                          labelText: 'Subject Full Name',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter subject name';
+                          }
+                          return null;
+                        },
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => _updateClassDetails(docId),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Update'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -389,25 +609,50 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                         ),
                                       ),
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.deepPurple.withOpacity(
-                                          0.1,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.deepPurple
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${data['branch']}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.deepPurple,
+                                            ),
+                                          ),
                                         ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        '${data['branch']}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.deepPurple,
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: () => _showEditClassDialog(
+                                            doc.id,
+                                            data,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                              color: Colors.deepPurple,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ],
                                 ),
