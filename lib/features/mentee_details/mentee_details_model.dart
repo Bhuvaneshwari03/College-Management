@@ -1,4 +1,4 @@
-class ProjectModel {
+class MenteeDetailsModel {
   final String id; // studentId
   final String studentName;
   final String projectName;
@@ -7,7 +7,7 @@ class ProjectModel {
   final String batch;
   final String type; // mini/major
 
-  ProjectModel({
+  MenteeDetailsModel({
     required this.id,
     required this.studentName,
     required this.projectName,
@@ -28,8 +28,8 @@ class ProjectModel {
     };
   }
 
-  factory ProjectModel.fromMap(Map<String, dynamic> map, String docId) {
-    return ProjectModel(
+  factory MenteeDetailsModel.fromMap(Map<String, dynamic> map, String docId) {
+    return MenteeDetailsModel(
       id: docId,
       studentName: map['studentName'] ?? '',
       projectName: map['projectName'] ?? '',

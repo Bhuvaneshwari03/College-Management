@@ -472,6 +472,59 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
     );
   }
 
+  Future<void> _deleteClass(String docId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Subject?'),
+        content: const Text(
+          'Are you sure you want to delete this subject? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+      setState(() => _isLoading = true);
+      try {
+        await FirebaseFirestore.instance
+            .collection('faculty_subjects')
+            .doc(docId)
+            .delete();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Subject Deleted Successfully'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -649,6 +702,22 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                               Icons.edit,
                                               size: 16,
                                               color: Colors.deepPurple,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: () => _deleteClass(doc.id),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.shade50,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.delete,
+                                              size: 16,
+                                              color: Colors.red,
                                             ),
                                           ),
                                         ),

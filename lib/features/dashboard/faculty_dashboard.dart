@@ -6,7 +6,7 @@ import 'package:college_management/features/faculty/presentation/pages/faculty_d
 import 'package:college_management/features/students/presentation/pages/add_student_page.dart';
 import 'package:college_management/features/timetable/presentation/pages/timetable_page.dart';
 import 'package:college_management/features/attendance/attendance_page.dart';
-import 'package:college_management/features/projects/project_page.dart';
+import 'package:college_management/features/mentee_details/mentee_details_page.dart';
 import 'package:college_management/features/internals/internals_page.dart';
 
 class FacultyDashboard extends StatelessWidget {
@@ -153,13 +153,13 @@ class FacultyDashboard extends StatelessWidget {
                           ),
                         ),
                         DashboardCard(
-                          title: 'Project Details',
+                          title: 'Mentee Details',
                           icon: Icons.folder_special_rounded,
                           color: Colors.indigo,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const ProjectPage(),
+                              builder: (_) => const MenteeDetailsPage(),
                             ),
                           ),
                         ),

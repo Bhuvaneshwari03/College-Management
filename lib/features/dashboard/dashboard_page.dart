@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:college_management/features/attendance/attendance_page.dart';
 import 'package:college_management/features/dashboard/dashboard_card.dart';
 import 'package:college_management/features/internals/internals_page.dart';
-import 'package:college_management/features/projects/project_page.dart';
+import 'package:college_management/features/mentee_details/mentee_details_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -53,14 +53,14 @@ class DashboardPage extends StatelessWidget {
                     },
                   ),
                   DashboardCard(
-                    title: 'Project Details',
+                    title: 'Mentee Details',
                     icon: Icons.assignment_rounded,
                     color: Colors.indigo,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProjectPage(),
+                          builder: (context) => const MenteeDetailsPage(),
                         ),
                       );
                     },
