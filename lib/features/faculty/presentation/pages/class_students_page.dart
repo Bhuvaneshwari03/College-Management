@@ -34,34 +34,47 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     super.dispose();
   }
 
-  Future<void> _addStudent() async {
+  Future<void> _addStudent(String? docId) async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      // Close dialog first if open, or handle loading state inside dialog
-      // For this implementation, we'll keep the dialog open but show loading
-      // Actually, better UX is to close dialog on success
 
       try {
-        await FirebaseFirestore.instance
+        final collection = FirebaseFirestore.instance
             .collection('faculty_subjects')
             .doc(widget.subjectId)
-            .collection('students')
-            .add({
-              'name': _nameController.text.trim(),
-              'rollNumber': _rollNumberController.text.trim(),
-              'createdAt': FieldValue.serverTimestamp(),
-            });
+            .collection('students');
+
+        if (docId == null) {
+          await collection.add({
+            'name': _nameController.text.trim(),
+            'rollNumber': _rollNumberController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          await collection.doc(docId).update({
+            'name': _nameController.text.trim(),
+            'rollNumber': _rollNumberController.text.trim(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Student Added Successfully!'),
+            SnackBar(
+              content: Text(
+                docId == null
+                    ? 'Student Added Successfully!'
+                    : 'Student Updated Successfully!',
+              ),
               backgroundColor: Colors.green,
             ),
           );
-          _nameController.clear();
-          _rollNumberController.clear();
-          Navigator.pop(context); // Close the dialog
+          if (docId == null) {
+            _nameController.clear();
+            _rollNumberController.clear();
+          } else {
+            Navigator.pop(context);
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -77,11 +90,67 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     }
   }
 
-  void _showAddStudentDialog() {
+  Future<void> _deleteStudent(String docId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Student?'),
+        content: const Text('Are you sure you want to delete this student?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+      try {
+        await FirebaseFirestore.instance
+            .collection('faculty_subjects')
+            .doc(widget.subjectId)
+            .collection('students')
+            .doc(docId)
+            .delete();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Student Deleted'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+  void _showStudentDialog({String? docId, Map<String, dynamic>? data}) {
+    if (docId != null && data != null) {
+      _nameController.text = data['name'] ?? '';
+      _rollNumberController.text = data['rollNumber'] ?? '';
+    } else {
+      _nameController.clear();
+      _rollNumberController.clear();
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Student'),
+        title: Text(docId == null ? 'Add Student' : 'Edit Student'),
         content: Form(
           key: _formKey,
           child: Column(
@@ -126,8 +195,10 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     ? null
                     : () async {
                         setState(() => _isLoading = true);
-                        await _addStudent();
-                        if (mounted) {
+                        await _addStudent(docId);
+                        if (mounted && docId != null) {
+                          // Dialog closed in _addStudent
+                        } else if (mounted) {
                           setState(() => _isLoading = false);
                         }
                       },
@@ -137,7 +208,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Add'),
+                    : Text(docId == null ? 'Add' : 'Update'),
               );
             },
           ),
@@ -178,7 +249,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddStudentDialog,
+        onPressed: () => _showStudentDialog(),
         backgroundColor: Colors.deepPurple,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
@@ -257,7 +328,8 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: 8),
                       itemBuilder: (context, index) {
-                        final data = docs[index].data() as Map<String, dynamic>;
+                        final doc = docs[index];
+                        final data = doc.data() as Map<String, dynamic>;
                         return Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
@@ -282,22 +354,30 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                                 fontSize: 16,
                               ),
                             ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                            subtitle: Text(
+                              'Roll No: ${data['rollNumber'] ?? 'N/A'}',
+                              style: TextStyle(
+                                color: Colors.deepPurple.shade700,
+                                fontWeight: FontWeight.w500,
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                data['rollNumber'] ?? 'N/A',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  color: Colors.indigo,
+                                  onPressed: () => _showStudentDialog(
+                                    docId: doc.id,
+                                    data: data,
+                                  ),
                                 ),
-                              ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, size: 20),
+                                  color: Colors.red,
+                                  onPressed: () => _deleteStudent(doc.id),
+                                ),
+                              ],
                             ),
                           ),
                         );
