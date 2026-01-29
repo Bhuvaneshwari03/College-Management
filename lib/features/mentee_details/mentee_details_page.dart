@@ -76,6 +76,8 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
         for (var studentDoc in studentsSnapshot.docs) {
           final data = studentDoc.data();
           tempStudents.add({
+            'id': studentDoc.id,
+            'subjectId': subjectDoc.id,
             'name': data['name'] ?? '',
             'rollNumber': data['rollNumber'] ?? '',
             'branch': branch,

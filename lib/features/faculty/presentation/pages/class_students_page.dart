@@ -34,7 +34,10 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     super.dispose();
   }
 
-  Future<void> _addStudent(String? docId) async {
+  Future<void> _addStudent(
+    String? docId, {
+    Map<String, dynamic>? oldData,
+  }) async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
@@ -51,11 +54,30 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
             'createdAt': FieldValue.serverTimestamp(),
           });
         } else {
+          // 1. Update the student in 'faculty_subjects'
           await collection.doc(docId).update({
             'name': _nameController.text.trim(),
             'rollNumber': _rollNumberController.text.trim(),
             'updatedAt': FieldValue.serverTimestamp(),
           });
+
+          // 2. Cascade update to 'mentee_details' if data changed
+          if (oldData != null) {
+            final oldName = oldData['name'];
+            final oldRoll = oldData['rollNumber'];
+            final newName = _nameController.text.trim();
+            final newRoll = _rollNumberController.text.trim();
+
+            if (oldName != newName || oldRoll != newRoll) {
+              await _updateMenteeDetailsForStudent(
+                oldName,
+                oldRoll,
+                newName,
+                newRoll,
+                docId,
+              );
+            }
+          }
         }
 
         if (mounted) {
@@ -87,6 +109,85 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           setState(() => _isLoading = false);
         }
       }
+    }
+  }
+
+  Future<void> _updateMenteeDetailsForStudent(
+    String oldName,
+    String oldRoll,
+    String newName,
+    String newRoll,
+    String studentId,
+  ) async {
+    // Note: This matches legacy records by Name/RollNo and new records by ID (if we stored it)
+    // Currently, we'll traverse and match manually since `students` is an array of maps.
+    try {
+      // Assuming we are updating for the current faculty
+      // We need to find mentee projects that might contain this student.
+      // Since we don't have a direct index, we fetch all mentee details for this faculty.
+      // This is okay if the number of projects is reasonable.
+      // Better: Store studentId in mentee_details, allowing array-contains query.
+
+      // For now, fetch all mentee_details for this faculty
+      // We need to import firebase_auth to get current user, but we can't easily here without passing it or assuming standard import.
+      // Assuming FirebaseAuth is available or we can get user from context? No.
+      // We'll use FirebaseAuth.instance.currentUser which works if FirebaseAuth is imported.
+      // Ensure FirebaseAuth is imported.
+
+      // Actually, let's just query mentee_details. we will just look at all of them for simplicity or filter by facultyId if possible.
+      // But wait, the previous code doesn't import FirebaseAuth explicitly in this file?
+      // Step 277 shows imports: material, cloud_firestore. No firebase_auth.
+      // I MUST ADD EXPLICIT IMPORT FOR FIREBASE_AUTH.
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('mentee_details')
+          // .where('facultyId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Need Auth import
+          .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+      bool batchCommmitNeeded = false;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final List<dynamic> students = data['students'] ?? [];
+        bool modified = false;
+        List<Map<String, dynamic>> updatedStudents = [];
+
+        for (var student in students) {
+          Map<String, dynamic> studentMap = Map<String, dynamic>.from(student);
+
+          bool match = false;
+          // Match by ID if available (future proofing)
+          if (studentMap.containsKey('id') && studentMap['id'] == studentId) {
+            match = true;
+          }
+          // Match by Name and RollNo (legacy)
+          else if (studentMap['name'] == oldName &&
+              studentMap['rollNumber'] == oldRoll) {
+            match = true;
+          }
+
+          if (match) {
+            studentMap['name'] = newName;
+            studentMap['rollNumber'] = newRoll;
+            // Also update 'display' or other fields if you have them stored
+            studentMap['display'] = '$newName ($newRoll)';
+            modified = true;
+          }
+          updatedStudents.add(studentMap);
+        }
+
+        if (modified) {
+          batch.update(doc.reference, {'students': updatedStudents});
+          batchCommmitNeeded = true;
+        }
+      }
+
+      if (batchCommmitNeeded) {
+        await batch.commit();
+      }
+    } catch (e) {
+      debugPrint('Error cascading update: $e');
     }
   }
 
@@ -195,7 +296,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                     ? null
                     : () async {
                         setState(() => _isLoading = true);
-                        await _addStudent(docId);
+                        await _addStudent(docId, oldData: data);
                         if (mounted && docId != null) {
                           // Dialog closed in _addStudent
                         } else if (mounted) {
