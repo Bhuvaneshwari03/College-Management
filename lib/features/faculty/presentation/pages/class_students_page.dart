@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ClassStudentsPage extends StatefulWidget {
   final String subjectId;
@@ -139,9 +140,12 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
       // Step 277 shows imports: material, cloud_firestore. No firebase_auth.
       // I MUST ADD EXPLICIT IMPORT FOR FIREBASE_AUTH.
 
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
       final snapshot = await FirebaseFirestore.instance
           .collection('mentee_details')
-          // .where('facultyId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Need Auth import
+          .where('facultyId', isEqualTo: user.uid)
           .get();
 
       final batch = FirebaseFirestore.instance.batch();
@@ -214,12 +218,26 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     if (confirm == true) {
       if (!mounted) return;
       try {
-        await FirebaseFirestore.instance
+        final docRef = FirebaseFirestore.instance
             .collection('faculty_subjects')
             .doc(widget.subjectId)
             .collection('students')
-            .doc(docId)
-            .delete();
+            .doc(docId);
+
+        final docSnap = await docRef.get();
+        String? name;
+        String? rollNumber;
+        if (docSnap.exists) {
+          final data = docSnap.data();
+          name = data?['name'];
+          rollNumber = data?['rollNumber'];
+        }
+
+        await docRef.delete();
+
+        if (name != null && rollNumber != null) {
+          await _removeStudentFromMenteeDetails(docId, name, rollNumber);
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -492,5 +510,49 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _removeStudentFromMenteeDetails(
+    String studentId,
+    String name,
+    String rollNumber,
+  ) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('mentee_details')
+          .where('facultyId', isEqualTo: user.uid)
+          .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+      bool batchWait = false;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final List<dynamic> students = data['students'] ?? [];
+        final initialLength = students.length;
+
+        final updatedStudents = students.where((s) {
+          final map = s as Map<String, dynamic>;
+          // Match logic: Remove if ID matches OR Name+Roll matches
+          if (map['id'] == studentId) return false;
+          if (map['name'] == name && map['rollNumber'] == rollNumber) {
+            return false;
+          }
+          return true;
+        }).toList();
+
+        if (updatedStudents.length < initialLength) {
+          batch.update(doc.reference, {'students': updatedStudents});
+          batchWait = true;
+        }
+      }
+
+      if (batchWait) await batch.commit();
+    } catch (e) {
+      debugPrint('Error removing student from mentees: $e');
+    }
   }
 }
