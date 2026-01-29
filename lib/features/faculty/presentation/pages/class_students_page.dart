@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:excel/excel.dart';
 
 class ClassStudentsPage extends StatefulWidget {
   final String subjectId;
@@ -33,6 +36,108 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     _nameController.dispose();
     _rollNumberController.dispose();
     super.dispose();
+  }
+
+  Future<void> _importStudents() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+        withData: true,
+      );
+
+      if (result != null) {
+        setState(() => _isLoading = true);
+
+        final bytes = result.files.single.bytes;
+        if (bytes == null) {
+          throw Exception(
+            'Could not read file data. Please use a valid .xlsx file.',
+          );
+        }
+
+        var excel = Excel.decodeBytes(bytes);
+        if (excel.tables.isEmpty)
+          throw Exception('No sheets found in Excel file');
+
+        final sheetName = excel.tables.keys.first;
+        final sheet = excel.tables[sheetName];
+        if (sheet == null) throw Exception('Sheet is empty');
+
+        final collection = FirebaseFirestore.instance
+            .collection('faculty_subjects')
+            .doc(widget.subjectId)
+            .collection('students');
+
+        final batch = FirebaseFirestore.instance.batch();
+        int count = 0;
+
+        // Skip header row (start at 1)
+        for (var i = 1; i < sheet.maxRows; i++) {
+          final row = sheet.rows[i];
+          if (row.isEmpty || row.length < 2) continue;
+
+          final nameVal = row[0]?.value;
+          final rollVal = row[1]?.value;
+
+          if (nameVal == null || rollVal == null) continue;
+
+          final name = nameVal.toString().trim();
+          final roll = rollVal.toString().trim();
+
+          if (name.isNotEmpty && roll.isNotEmpty) {
+            final docRef = collection.doc();
+            batch.set(docRef, {
+              'name': name,
+              'rollNumber': roll,
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+            count++;
+          }
+        }
+
+        if (count > 0) {
+          await batch.commit();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Successfully imported $count students!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'No valid data found. Ensure Col A=Name, Col B=RollNo.',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = 'Import failed: $e';
+        if (e.toString().contains('LateInitializationError') ||
+            e.toString().contains('_instance')) {
+          errorMessage =
+              'New features added. Please completely STOP and RESTART the app.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _addStudent(
@@ -366,6 +471,13 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file, color: Colors.white),
+            tooltip: 'Import Excel',
+            onPressed: () => _importStudents(),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showStudentDialog(),
