@@ -103,7 +103,7 @@ class FacultyDashboard extends StatelessWidget {
                       topRight: Radius.circular(30),
                     ),
                     child: GridView.count(
-                      crossAxisCount: 3,
+                      crossAxisCount: 2,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                       padding: const EdgeInsets.all(24),
