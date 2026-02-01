@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
@@ -47,6 +46,9 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
       );
 
       if (result != null) {
+        // Close the instructions dialog if open
+        if (mounted) Navigator.pop(context);
+
         setState(() => _isLoading = true);
 
         final bytes = result.files.single.bytes;
@@ -228,23 +230,6 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     // Note: This matches legacy records by Name/RollNo and new records by ID (if we stored it)
     // Currently, we'll traverse and match manually since `students` is an array of maps.
     try {
-      // Assuming we are updating for the current faculty
-      // We need to find mentee projects that might contain this student.
-      // Since we don't have a direct index, we fetch all mentee details for this faculty.
-      // This is okay if the number of projects is reasonable.
-      // Better: Store studentId in mentee_details, allowing array-contains query.
-
-      // For now, fetch all mentee_details for this faculty
-      // We need to import firebase_auth to get current user, but we can't easily here without passing it or assuming standard import.
-      // Assuming FirebaseAuth is available or we can get user from context? No.
-      // We'll use FirebaseAuth.instance.currentUser which works if FirebaseAuth is imported.
-      // Ensure FirebaseAuth is imported.
-
-      // Actually, let's just query mentee_details. we will just look at all of them for simplicity or filter by facultyId if possible.
-      // But wait, the previous code doesn't import FirebaseAuth explicitly in this file?
-      // Step 277 shows imports: material, cloud_firestore. No firebase_auth.
-      // I MUST ADD EXPLICIT IMPORT FOR FIREBASE_AUTH.
-
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
@@ -362,7 +347,94 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
     }
   }
 
-  void _showStudentDialog({String? docId, Map<String, dynamic>? data}) {
+  void _showAddOptionsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Students'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showImportInstructionsDialog();
+              },
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Import from Excel'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                alignment: Alignment.centerLeft,
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showStudentFormDialog();
+              },
+              icon: const Icon(Icons.edit),
+              label: const Text('Manual Entry'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                alignment: Alignment.centerLeft,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImportInstructionsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excel Import Instructions'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Please ensure your Excel file (.xlsx) matches the following format:',
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '• Column A: Student Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              '• Column B: Roll Number',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const Text('Notes:'),
+            const Text('• The first row is treated as a header and skipped.'),
+            const Text('• Empty rows will be ignored.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: _importStudents,
+            child: const Text('Select File'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStudentFormDialog({String? docId, Map<String, dynamic>? data}) {
     if (docId != null && data != null) {
       _nameController.text = data['name'] ?? '';
       _rollNumberController.text = data['rollNumber'] ?? '';
@@ -471,17 +543,10 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.upload_file, color: Colors.white),
-            tooltip: 'Import Excel',
-            onPressed: () => _importStudents(),
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showStudentDialog(),
-        backgroundColor: Colors.deepPurple,
+        onPressed: () => _showAddOptionsDialog(),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Add Student',
@@ -493,7 +558,10 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -569,11 +637,13 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                           color: Colors.white.withOpacity(0.9),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Colors.deepPurple.shade100,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.1),
                               child: Text(
                                 '${index + 1}',
                                 style: TextStyle(
-                                  color: Colors.deepPurple.shade800,
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -588,7 +658,7 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                             subtitle: Text(
                               'Roll No: ${data['rollNumber'] ?? 'N/A'}',
                               style: TextStyle(
-                                color: Colors.deepPurple.shade700,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -597,8 +667,10 @@ class _ClassStudentsPageState extends State<ClassStudentsPage> {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
-                                  color: Colors.indigo,
-                                  onPressed: () => _showStudentDialog(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                  onPressed: () => _showStudentFormDialog(
                                     docId: doc.id,
                                     data: data,
                                   ),

@@ -83,7 +83,10 @@ class _LoginPageState extends State<LoginPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: Center(
@@ -110,12 +113,12 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
+                          Text(
                             'Welcome Back',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
+                              color: Theme.of(context).colorScheme.primary,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -133,9 +136,9 @@ class _LoginPageState extends State<LoginPage> {
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
                               labelText: 'Email',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                 Icons.email_outlined,
-                                color: Colors.deepPurple,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -160,9 +163,9 @@ class _LoginPageState extends State<LoginPage> {
                             obscureText: !_isPasswordVisible,
                             decoration: InputDecoration(
                               labelText: 'Password',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                 Icons.lock_outline,
-                                color: Colors.deepPurple,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -202,7 +205,9 @@ class _LoginPageState extends State<LoginPage> {
                                 // TODO: Implement Forgot Password
                               },
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.deepPurple,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                               ),
                               child: const Text('Forgot Password?'),
                             ),
@@ -214,7 +219,9 @@ class _LoginPageState extends State<LoginPage> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 foregroundColor: Colors.white,
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
@@ -259,7 +266,9 @@ class _LoginPageState extends State<LoginPage> {
                                   );
                                 },
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.deepPurple,
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
                                   textStyle: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),

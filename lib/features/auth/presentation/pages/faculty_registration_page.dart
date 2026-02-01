@@ -96,7 +96,10 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: Center(
@@ -125,12 +128,12 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
+                          Text(
                             'Faculty Registration',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
+                              color: Theme.of(context).colorScheme.primary,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -150,9 +153,9 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                             textCapitalization: TextCapitalization.words,
                             decoration: InputDecoration(
                               labelText: 'Full Name',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                 Icons.person_outline,
-                                color: Colors.deepPurple,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -166,8 +169,8 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
                                   width: 2,
                                 ),
                               ),
@@ -194,9 +197,9 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               labelText: 'Official Email ID',
                               hintText: 'example@msuniv.ac.in',
                               helperText: 'Must be an @msuniv.ac.in address',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                 Icons.alternate_email,
-                                color: Colors.deepPurple,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -210,8 +213,8 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
                                   width: 2,
                                 ),
                               ),
@@ -241,9 +244,9 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                             obscureText: !_isPasswordVisible,
                             decoration: InputDecoration(
                               labelText: 'Password',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                 Icons.lock_outline,
-                                color: Colors.deepPurple,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -270,8 +273,8 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.deepPurple,
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
                                   width: 2,
                                 ),
                               ),
@@ -297,7 +300,9 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _register,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 foregroundColor: Colors.white,
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
@@ -339,7 +344,9 @@ class _FacultyRegistrationPageState extends State<FacultyRegistrationPage> {
                                   Navigator.pop(context); // Go back to Login
                                 },
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.deepPurple,
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
                                   textStyle: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),

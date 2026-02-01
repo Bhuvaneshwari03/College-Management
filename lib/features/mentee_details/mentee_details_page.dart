@@ -415,7 +415,7 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
                       ? null
                       : () => _saveMenteeDetails(docId),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -522,7 +522,7 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showMenteeDialog(),
-        backgroundColor: Colors.indigo,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Add Mentee',
@@ -534,7 +534,10 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.indigo.shade900, Colors.indigo.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -624,13 +627,17 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.indigo.withOpacity(0.1),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   data['branch'] ?? '',
-                                  style: const TextStyle(
-                                    color: Colors.indigo,
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -689,7 +696,10 @@ class _MenteeDetailsPageState extends State<MenteeDetailsPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.indigo),
+                            icon: Icon(
+                              Icons.edit,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             onPressed: () =>
                                 _showMenteeDialog(docId: doc.id, data: data),
                           ),

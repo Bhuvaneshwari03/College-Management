@@ -235,7 +235,7 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _submitDetails,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -447,7 +447,7 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                       ? null
                       : () => _updateClassDetails(docId),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -543,7 +543,7 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddClassDialog,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Add Class & Subject',
@@ -555,7 +555,10 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -655,10 +658,12 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                       child: Text(
                                         data['subjectName'] ??
                                             'Unknown Subject',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.deepPurple,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                       ),
                                     ),
@@ -671,7 +676,9 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.deepPurple
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
                                                 .withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
@@ -679,10 +686,12 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                           ),
                                           child: Text(
                                             '${data['branch']}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.deepPurple,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                             ),
                                           ),
                                         ),
@@ -698,10 +707,12 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                                               color: Colors.grey.shade100,
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.edit,
                                               size: 16,
-                                              color: Colors.deepPurple,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.secondary,
                                             ),
                                           ),
                                         ),

@@ -27,7 +27,10 @@ class AttendancePage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -129,10 +132,12 @@ class AttendancePage extends StatelessWidget {
                                         child: Text(
                                           data['subjectName'] ??
                                               'Unknown Subject',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.deepPurple,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           ),
                                         ),
                                       ),
@@ -142,19 +147,22 @@ class AttendancePage extends StatelessWidget {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.deepPurple.withOpacity(
-                                            0.1,
-                                          ),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
                                         ),
                                         child: Text(
                                           '${data['branch']}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.deepPurple,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           ),
                                         ),
                                       ),
@@ -166,7 +174,9 @@ class AttendancePage extends StatelessWidget {
                                       Text(
                                         'Year: ${data['year']}',
                                         style: TextStyle(
-                                          color: Colors.grey[700],
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -174,7 +184,9 @@ class AttendancePage extends StatelessWidget {
                                       Text(
                                         'Sem: ${data['semester']}',
                                         style: TextStyle(
-                                          color: Colors.grey[700],
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),

@@ -21,8 +21,8 @@ class FacultyDashboard extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.deepPurple.shade900,
-              Colors.grey.shade50,
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).scaffoldBackgroundColor,
               Colors.grey.shade50,
             ],
             stops: const [0.0, 0.3, 1.0],
@@ -111,7 +111,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Faculty Details',
                           icon: Icons.person_rounded,
-                          color: Colors.blueAccent,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -122,7 +122,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Add Student',
                           icon: Icons.person_add_rounded,
-                          color: Colors.green,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -133,7 +133,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Timetable',
                           icon: Icons.schedule_rounded,
-                          color: Colors.orange,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -144,7 +144,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Attendance',
                           icon: Icons.calendar_today_rounded,
-                          color: Colors.teal,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -155,7 +155,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Mentee Details',
                           icon: Icons.folder_special_rounded,
-                          color: Colors.indigo,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -166,7 +166,7 @@ class FacultyDashboard extends StatelessWidget {
                         DashboardCard(
                           title: 'Internal Marks',
                           icon: Icons.grade_rounded,
-                          color: Colors.redAccent,
+                          color: Theme.of(context).colorScheme.primary,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(

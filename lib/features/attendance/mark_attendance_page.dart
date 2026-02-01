@@ -95,7 +95,11 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Icon(Icons.person, size: 64, color: Colors.blueGrey),
+                    Icon(
+                      Icons.person,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       widget.student.name,
@@ -105,7 +109,7 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
                     Text(
                       '${widget.student.department} • ${widget.student.studentClass}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey[600],
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

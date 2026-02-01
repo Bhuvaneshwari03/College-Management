@@ -2,6 +2,7 @@ import 'package:college_management/features/auth/presentation/pages/login_page.d
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:college_management/firebase_options.dart';
+import 'package:college_management/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,18 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'College Management',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.grey[50],
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: const LoginPage(),
     );
   }

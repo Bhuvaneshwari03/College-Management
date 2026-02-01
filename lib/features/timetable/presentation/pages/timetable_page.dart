@@ -199,7 +199,7 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   Widget build(BuildContext context) {
     final borderSide = BorderSide(
-      color: Colors.deepPurple.withOpacity(0.2),
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
       width: 1,
     );
     final user = FirebaseAuth.instance.currentUser;
@@ -239,7 +239,10 @@ class _TimetablePageState extends State<TimetablePage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -279,7 +282,9 @@ class _TimetablePageState extends State<TimetablePage> {
                               color: Colors.white.withOpacity(0.95),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: Colors.deepPurple.withOpacity(0.2),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.2),
                                 width: 1,
                               ),
                               boxShadow: [
@@ -300,7 +305,9 @@ class _TimetablePageState extends State<TimetablePage> {
                                 // Header Row (Time Slots)
                                 TableRow(
                                   decoration: BoxDecoration(
-                                    color: Colors.deepPurple.withOpacity(0.1),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.1),
                                   ),
                                   children: [
                                     TableCell(
@@ -316,12 +323,14 @@ class _TimetablePageState extends State<TimetablePage> {
                                         ),
                                         alignment: Alignment.center,
                                         padding: const EdgeInsets.all(8.0),
-                                        child: const Text(
+                                        child: Text(
                                           'Day / Time',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.deepPurple,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           ),
                                         ),
                                       ),
@@ -347,10 +356,12 @@ class _TimetablePageState extends State<TimetablePage> {
                                           child: Text(
                                             period,
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
-                                              color: Colors.deepPurple,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                             ),
                                           ),
                                         ),
@@ -374,7 +385,9 @@ class _TimetablePageState extends State<TimetablePage> {
                                             TableCellVerticalAlignment.fill,
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            color: Colors.deepPurple
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
                                                 .withOpacity(0.05),
                                             border: Border(
                                               right: borderSide,
@@ -389,10 +402,12 @@ class _TimetablePageState extends State<TimetablePage> {
                                           child: Text(
                                             day,
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
-                                              color: Colors.deepPurple,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                             ),
                                           ),
                                         ),

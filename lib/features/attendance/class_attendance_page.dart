@@ -82,7 +82,10 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.deepPurple.shade500],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.tertiary,
+            ],
           ),
         ),
         child: SafeArea(
@@ -235,11 +238,13 @@ class AttendanceListItem extends StatelessWidget {
               vertical: 4,
             ),
             leading: CircleAvatar(
-              backgroundColor: Colors.deepPurple.shade100,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
               child: Text(
                 studentName.isNotEmpty ? studentName[0].toUpperCase() : '?',
                 style: TextStyle(
-                  color: Colors.deepPurple.shade800,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),

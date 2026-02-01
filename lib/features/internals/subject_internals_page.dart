@@ -335,16 +335,19 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
           children: [
             Text(
               widget.subjectName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             Text(
               '${widget.branch} • ${widget.year}',
-              style: const TextStyle(fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              ),
             ),
           ],
         ),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -361,7 +364,7 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
               child: Text(
-                'No students found. Add students in "Add Student" or "Class Students" page.',
+                'No students found. Add students in "Add Student" page.',
               ),
             );
           }
@@ -383,9 +386,9 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                       ),
                       columnSpacing: 20,
                       headingRowColor: MaterialStateProperty.all(
-                        Colors.grey.shade200,
+                        Theme.of(context).colorScheme.primary.withOpacity(0.05),
                       ),
-                      columns: const [
+                      columns: [
                         DataColumn(
                           label: Text(
                             'Roll No',
@@ -425,7 +428,7 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: Theme.of(context).colorScheme.secondary,
                             ),
                           ),
                         ),
@@ -449,7 +452,7 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.indigo,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -536,7 +539,7 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: avg != null
-                                      ? Colors.blue
+                                      ? Theme.of(context).colorScheme.secondary
                                       : Colors.grey,
                                 ),
                               ),
@@ -551,7 +554,7 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: total != null
-                                      ? Colors.indigo
+                                      ? Theme.of(context).colorScheme.primary
                                       : Colors.grey,
                                   fontSize: 16,
                                 ),
@@ -559,9 +562,9 @@ class _SubjectInternalsPageState extends State<SubjectInternalsPage> {
                             ),
                             DataCell(
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.edit,
-                                  color: Colors.teal,
+                                  color: Theme.of(context).colorScheme.tertiary,
                                 ),
                                 onPressed: () =>
                                     _showEditStudentDialog(docs, index),
