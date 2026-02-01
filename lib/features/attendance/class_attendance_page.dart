@@ -70,12 +70,8 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.white),
-            onPressed: () => _selectDate(context),
-          ),
-        ],
+
+        // actions: [], // Calendar action moved to date display
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -105,20 +101,37 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                         color: Colors.white,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _dateId,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: () => _selectDate(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _dateId,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
