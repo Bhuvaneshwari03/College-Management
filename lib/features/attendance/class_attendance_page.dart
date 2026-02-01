@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:college_management/features/attendance/monthly_attendance_page.dart';
 
 class ClassAttendancePage extends StatefulWidget {
   final String subjectId;
@@ -70,8 +71,26 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-
-        // actions: [], // Calendar action moved to date display
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.table_chart, color: Colors.white),
+            tooltip: 'Monthly Report',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MonthlyAttendancePage(
+                    subjectId: widget.subjectId,
+                    subjectName: widget.subjectName,
+                    branch: widget.branch,
+                    year: widget.year,
+                    semester: widget.semester,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -233,10 +252,25 @@ class AttendanceListItem extends StatelessWidget {
           .doc(dateId)
           .snapshots(),
       builder: (context, snapshot) {
-        bool isPresent = true; // Default to present
+        bool isPresent = true; // Default to present (visual)
+
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
-          isPresent = data['present'] as bool;
+          isPresent = data['present'] as bool? ?? true;
+        }
+
+        Color statusColor;
+        IconData statusIcon;
+        String statusText;
+
+        if (isPresent) {
+          statusColor = Colors.green;
+          statusIcon = Icons.check_circle_rounded;
+          statusText = 'Present';
+        } else {
+          statusColor = Colors.red;
+          statusIcon = Icons.cancel_rounded;
+          statusText = 'Absent';
         }
 
         return Card(
@@ -288,30 +322,19 @@ class AttendanceListItem extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isPresent
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isPresent ? Colors.green : Colors.red,
-                    width: 1,
-                  ),
+                  border: Border.all(color: statusColor, width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      isPresent
-                          ? Icons.check_circle_rounded
-                          : Icons.cancel_rounded,
-                      color: isPresent ? Colors.green : Colors.red,
-                      size: 20,
-                    ),
+                    Icon(statusIcon, color: statusColor, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      isPresent ? 'Present' : 'Absent',
+                      statusText,
                       style: TextStyle(
-                        color: isPresent ? Colors.green : Colors.red,
+                        color: statusColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
