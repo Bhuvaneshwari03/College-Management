@@ -75,18 +75,13 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
         final studentData = doc.data();
         final studentName = studentData['name'] ?? 'Unknown';
         final rollNumber = studentData['rollNumber'] ?? 'N/A';
-        // final studentId = doc.id;
 
         // Fetch attendance for this student
-        // Since we can't easily range query doc IDs, we fetch all and filter or just fetch.
-        // Optimization: If we had a 'date' field we could query range.
-        // For now, fetch all attendance records.
         final attendanceSnapshot = await doc.reference
             .collection('attendance')
             .get();
 
-        Map<int, bool> dailyStatus = {};
-        int presentCount = 0;
+        Map<int, bool> realAttendance = {}; // What is in DB
 
         for (var attDoc in attendanceSnapshot.docs) {
           final dateId = attDoc.id; // YYYY-MM-DD
@@ -97,12 +92,40 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
             final day = int.parse(dateParts[2]);
 
             if (year == _selectedMonth.year && month == _selectedMonth.month) {
-              final isPresent = attDoc.data()['present'] == true;
-              dailyStatus[day] = isPresent;
-              if (isPresent) presentCount++;
+              realAttendance[day] = attDoc.data()['present'] == true;
             }
           } catch (e) {
             // Ignore badly formatted dates
+          }
+        }
+
+        // Calculate derived status and total
+        Map<int, bool> dailyStatus = {};
+        int presentCount = 0;
+        final now = DateTime.now();
+        // Reset time to midnight for fair comparison
+        final today = DateTime(now.year, now.month, now.day);
+
+        for (int day = 1; day <= _daysInMonth; day++) {
+          final dateToCheck = DateTime(
+            _selectedMonth.year,
+            _selectedMonth.month,
+            day,
+          );
+
+          if (realAttendance.containsKey(day)) {
+            final isPresent = realAttendance[day]!;
+            dailyStatus[day] = isPresent;
+            if (isPresent) presentCount++;
+          } else {
+            // No record.
+            if (dateToCheck.isAfter(today)) {
+              // Future: show nothing
+            } else {
+              // Past/Today: Implicitly Present
+              dailyStatus[day] = true;
+              presentCount++;
+            }
           }
         }
 
